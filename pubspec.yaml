@@ -1,0 +1,58 @@
+name: connectidwallet
+description: CONNECTIDN Digital Wallet Application
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # UI/UX & Responsive Design
+  flutter_screenutil: ^5.9.0
+  google_fonts: ^6.1.0
+  flutter_animate: ^4.5.2
+  lottie: ^3.1.0
+  flutter_svg: ^2.0.10
+  shimmer: ^3.0.0
+  cached_network_image: ^3.3.1
+
+  # State Management
+  flutter_riverpod: ^2.5.0
+
+  # Authentication & Security
+  flutter_appauth: ^6.0.2
+  flutter_secure_storage: ^9.0.0
+
+  # Networking
+  dio: ^5.4.0
+  retrofit: ^4.1.0
+  json_annotation: ^4.8.1
+
+  # Utilities
+  intl: ^0.19.0
+  logger: ^2.0.2
+  url_launcher: ^6.2.4
+  path_provider: ^2.1.2
+
+  # Additional UI
+  cupertino_icons: ^1.0.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+  build_runner: ^2.4.7
+  retrofit_generator: ^8.0.6
+  json_serializable: ^6.7.1
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/BLPID.png
+    - assets/images/CONNECTIDN.png
+    - assets/images/bssn_logo.png
+    - assets/images/login.png
