@@ -89,14 +89,13 @@ class _AlertPageState extends State<AlertPage> {
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // BLPID Logo Background
           Positioned(
             top: -50,
             right: -100,
             child: Opacity(
               opacity: 0.1,
               child: Image.asset(
-                'assets/images/blpid_logo.png',
+                'assets/images/BLPID.png',
                 width: 300,
                 height: 300,
                 fit: BoxFit.contain,
@@ -117,10 +116,8 @@ class _AlertPageState extends State<AlertPage> {
           SafeArea(
             child: Column(
               children: [
-                // Custom App Bar
                 _buildAppBar(),
 
-                // Notifications List
                 Expanded(
                   child: _notifications.isEmpty
                       ? _buildEmptyState()
@@ -308,7 +305,6 @@ class _AlertPageState extends State<AlertPage> {
 
                   const SizedBox(width: 12),
 
-                  // Content
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

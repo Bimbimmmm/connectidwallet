@@ -102,7 +102,6 @@ class _HistoryPageState extends State<HistoryPage>
       backgroundColor: const Color(0xFF284074),
       body: Stack(
         children: [
-          // Gradient background
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -117,14 +116,13 @@ class _HistoryPageState extends State<HistoryPage>
             ),
           ),
 
-          // Logo watermark
           Positioned(
             top: -50,
             right: -100,
             child: Opacity(
               opacity: 0.1,
               child: Image.asset(
-                'assets/images/blpid_logo.png',
+                'assets/images/BLPID.png',
                 width: 300,
                 height: 300,
                 fit: BoxFit.contain,
@@ -140,16 +138,13 @@ class _HistoryPageState extends State<HistoryPage>
             ),
           ),
 
-          // Content
           SafeArea(
             child: Column(
               children: [
                 _buildAppBar(),
 
-                // Tab bar
                 _buildTabBar(),
 
-                // Tab contents
                 Expanded(
                   child: TabBarView(
                     controller: _tabController,
@@ -167,7 +162,6 @@ class _HistoryPageState extends State<HistoryPage>
     );
   }
 
-  // ====== AppBar ======
   Widget _buildAppBar() {
     return ClipRect(
       child: BackdropFilter(
@@ -250,7 +244,6 @@ class _HistoryPageState extends State<HistoryPage>
     );
   }
 
-  // ====== Tabs ======
   Widget _buildTabBar() {
     return Container(
       margin: const EdgeInsets.all(20),
@@ -281,7 +274,6 @@ class _HistoryPageState extends State<HistoryPage>
     );
   }
 
-  // ====== Identity Usage Tab ======
   Widget _buildIdentityUsageTab() {
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -355,7 +347,6 @@ class _HistoryPageState extends State<HistoryPage>
                 ),
                 const SizedBox(height: 12),
 
-                // identity title
                 Text(
                   item['identity'],
                   style: const TextStyle(
@@ -366,7 +357,6 @@ class _HistoryPageState extends State<HistoryPage>
                 ),
                 const SizedBox(height: 8),
 
-                // issuer + verifier chips
                 Row(
                   children: [
                     _buildInfoChip('Issuer', item['issuer'], Icons.business_rounded),
@@ -376,7 +366,6 @@ class _HistoryPageState extends State<HistoryPage>
                 ),
                 const SizedBox(height: 8),
 
-                // purpose
                 Text(
                   item['purpose'],
                   style: TextStyle(
@@ -395,7 +384,6 @@ class _HistoryPageState extends State<HistoryPage>
         .slideX(begin: 0.2, end: 0);
   }
 
-  // ====== App Logins Tab ======
   Widget _buildAppLoginTab() {
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -469,7 +457,6 @@ class _HistoryPageState extends State<HistoryPage>
                 ),
                 const SizedBox(height: 12),
 
-                // title
                 Text(
                   'Login to ${item['appName']}',
                   style: const TextStyle(
@@ -525,7 +512,6 @@ class _HistoryPageState extends State<HistoryPage>
         .slideX(begin: 0.2, end: 0);
   }
 
-  // ====== Shared small widgets ======
   Widget _buildInfoChip(String label, String value, IconData icon) {
     return Expanded(
       child: Container(

@@ -122,14 +122,13 @@ class _ActiveSessionPageState extends State<ActiveSessionPage> {
             ),
           ),
 
-          // BLPID Logo Background
           Positioned(
             top: -50,
             right: -100,
             child: Opacity(
               opacity: 0.1,
               child: Image.asset(
-                'assets/images/blpid_logo.png',
+                'assets/images/BLPID.png',
                 width: 300,
                 height: 300,
                 fit: BoxFit.contain,
@@ -368,7 +367,6 @@ class _ActiveSessionPageState extends State<ActiveSessionPage> {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  // App Logo
                   Container(
                     width: 50,
                     height: 50,
@@ -389,7 +387,6 @@ class _ActiveSessionPageState extends State<ActiveSessionPage> {
 
                   const SizedBox(width: 16),
 
-                  // Session Info
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -463,7 +460,6 @@ class _ActiveSessionPageState extends State<ActiveSessionPage> {
                     ),
                   ),
 
-                  // Action Button
                   IconButton(
                     onPressed: () => _revokeSession(index),
                     icon: Icon(

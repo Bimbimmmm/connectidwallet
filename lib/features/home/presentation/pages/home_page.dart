@@ -127,18 +127,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         ],
       ),
 
-      // Custom Bottom Navigation with FAB
       bottomNavigationBar: MediaQuery(
-        // Kunci text scale agar label tidak overflow saat aksesibilitas > 1.0
         data: MediaQuery.of(context).copyWith(
           textScaler: const TextScaler.linear(1.0),
         ),
         child: Container(
           height: 90,
           child: Stack(
-            clipBehavior: Clip.none, // biar FAB boleh "keluar" tanpa terpotong
+            clipBehavior: Clip.none,
             children: [
-              // Glass morphism bottom nav
               Positioned(
                 bottom: 0,
                 left: 0,
@@ -180,10 +177,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 ),
               ),
 
-              // Floating Action Button for Scanner (seperti awal, tidak kepotong)
               Positioned(
                 bottom:
-                18, // top = 90 - 18 - 70 = 2 (aman; tidak terpotong atas/bawah)
+                18,
                 left: MediaQuery.of(context).size.width / 2 - 35,
                 child: GestureDetector(
                   onTap: _openScanner,
@@ -323,7 +319,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 color:
                 isSelected ? Colors.white : Colors.white.withOpacity(0.6),
                 fontSize: 10,
-                height: 1.05, // padatkan line-height agar tidak "nabrak"
+                height: 1.05,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),
             ),

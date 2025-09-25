@@ -99,7 +99,6 @@ class _IDVaultPageState extends State<IDVaultPage> with TickerProviderStateMixin
 
   void _onAdd() {
     HapticFeedback.lightImpact();
-    // Placeholder flow tambah data
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -113,7 +112,6 @@ class _IDVaultPageState extends State<IDVaultPage> with TickerProviderStateMixin
       backgroundColor: const Color(0xFF284074),
       body: Stack(
         children: [
-          // background gradient
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -128,13 +126,35 @@ class _IDVaultPageState extends State<IDVaultPage> with TickerProviderStateMixin
             ),
           ),
 
+          Positioned(
+            top: -50,
+            right: -100,
+            child: Opacity(
+              opacity: 0.1,
+              child: Image.asset(
+                'assets/images/BLPID.png',
+                width: 300,
+                height: 300,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    width: 300,
+                    height: 300,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withOpacity(0.05),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+
           SafeArea(
             child: Column(
               children: [
-                // ✅ App Bar dengan Back (kiri) & Plus (kanan)
                 _buildAppBar(),
 
-                // Vertical list of KTP-sized cards
                 Expanded(
                   child: ListView.separated(
                     padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
@@ -155,7 +175,6 @@ class _IDVaultPageState extends State<IDVaultPage> with TickerProviderStateMixin
     );
   }
 
-  // ===== AppBar (Back + Title + Count Pill + Plus) =====
   Widget _buildAppBar() {
     return ClipRect(
       child: BackdropFilter(
@@ -195,7 +214,6 @@ class _IDVaultPageState extends State<IDVaultPage> with TickerProviderStateMixin
               ),
               const SizedBox(width: 16),
 
-              // Title
               Expanded(
                 child: ShaderMask(
                   shaderCallback: (bounds) => LinearGradient(
@@ -213,7 +231,6 @@ class _IDVaultPageState extends State<IDVaultPage> with TickerProviderStateMixin
                 ),
               ),
 
-              // Count pill
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
@@ -234,7 +251,6 @@ class _IDVaultPageState extends State<IDVaultPage> with TickerProviderStateMixin
               ),
               const SizedBox(width: 8),
 
-              // Plus button (add)
               GestureDetector(
                 onTap: _onAdd,
                 child: Container(
@@ -261,7 +277,6 @@ class _IDVaultPageState extends State<IDVaultPage> with TickerProviderStateMixin
     );
   }
 
-  // ===== KTP-sized card (vertical list) =====
   Widget _buildKtpCard(Map<String, dynamic> c, int index) {
     // Rasio KTP: 85.6mm × 54mm ≈ 1.586
     const double ktpAspect = 85.6 / 54.0;
@@ -296,7 +311,6 @@ class _IDVaultPageState extends State<IDVaultPage> with TickerProviderStateMixin
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Top: type + issuer chip
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -331,7 +345,6 @@ class _IDVaultPageState extends State<IDVaultPage> with TickerProviderStateMixin
 
                         const Spacer(),
 
-                        // Bottom: number + holder + meta compact
                         Text(
                           c['number'] ?? '',
                           maxLines: 1,
@@ -395,7 +408,6 @@ class _IDVaultPageState extends State<IDVaultPage> with TickerProviderStateMixin
         .slideY(begin: 0.08, end: 0, curve: Curves.easeOutCubic);
   }
 
-  // ===== Bottom Sheet Detail =====
   Widget _buildCredentialDetailSheet(Map<String, dynamic> credential) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.8,
@@ -506,7 +518,6 @@ class _IDVaultPageState extends State<IDVaultPage> with TickerProviderStateMixin
     );
   }
 
-  // ===== Simple "Tambah Data" Sheet (placeholder) =====
   Widget _buildAddSheet() {
     final typeCtrl = TextEditingController();
     final numberCtrl = TextEditingController();

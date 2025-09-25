@@ -7,13 +7,11 @@ import 'features/home/presentation/pages/home_page.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Set preferred orientations
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
-  // Set system UI overlay style
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,

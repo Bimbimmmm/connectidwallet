@@ -35,7 +35,7 @@ class _DashboardPageState extends State<DashboardPage>
   void dispose() {
     _cardController.dispose();
     _scrollController.dispose();
-    _cardsController.dispose(); // ⬅️ penting
+    _cardsController.dispose();
     super.dispose();
   }
 
@@ -85,14 +85,13 @@ class _DashboardPageState extends State<DashboardPage>
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // BLPID Logo Background
           Positioned(
             top: -50,
             right: -100,
             child: Opacity(
               opacity: 0.1,
               child: Image.asset(
-                'assets/images/blpid_logo.png',
+                'assets/images/BLPID.png',
                 width: 300,
                 height: 300,
                 fit: BoxFit.contain,
@@ -108,17 +107,14 @@ class _DashboardPageState extends State<DashboardPage>
             ),
           ),
 
-          // Main Content
           SafeArea(
             child: Column(
               children: [
-                // Custom App Bar
                 _buildAppBar(context),
 
-                // Scrollable Content
                 Expanded(
                   child: SingleChildScrollView(
-                    controller: _scrollController, // vertikal
+                    controller: _scrollController,
                     physics: const BouncingScrollPhysics(),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -127,17 +123,14 @@ class _DashboardPageState extends State<DashboardPage>
                         children: [
                           const SizedBox(height: 20),
 
-                          // Welcome Text
                           _buildWelcomeSection(),
 
                           const SizedBox(height: 24),
 
-                          // Cards Section
                           _buildCardsSection(),
 
                           const SizedBox(height: 32),
 
-                          // Main Menu Section
                           _buildMainMenuSection(),
 
                           const SizedBox(height: 100),
@@ -189,7 +182,6 @@ class _DashboardPageState extends State<DashboardPage>
                 ),
               ),
 
-              // Action Buttons
               Row(
                 children: [
                   _buildAppBarIcon(Icons.headset_mic_rounded, _handleCallCenter),
@@ -357,7 +349,6 @@ class _DashboardPageState extends State<DashboardPage>
 
                       const Spacer(),
 
-                      // Bottom Section
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Allow cleartext for staging server -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">stg-connect-idn.bssn.go.id</domain>
+    </domain-config>
+
+    <!-- Default config for other domains -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

@@ -106,7 +106,6 @@ class _LinkedIDPPageState extends State<LinkedIDPPage> with TickerProviderStateM
       backgroundColor: const Color(0xFF284074),
       body: Stack(
         children: [
-          // Animated gradient background
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -121,14 +120,13 @@ class _LinkedIDPPageState extends State<LinkedIDPPage> with TickerProviderStateM
             ),
           ),
 
-          // BLPID Logo Background
           Positioned(
             top: -50,
             right: -100,
             child: Opacity(
               opacity: 0.1,
               child: Image.asset(
-                'assets/images/blpid_logo.png',
+                'assets/images/BLPID.png',
                 width: 300,
                 height: 300,
                 fit: BoxFit.contain,
@@ -149,10 +147,8 @@ class _LinkedIDPPageState extends State<LinkedIDPPage> with TickerProviderStateM
           SafeArea(
             child: Column(
               children: [
-                // Custom App Bar
                 _buildAppBar(),
 
-                // IDP List
                 Expanded(
                   child: ListView.builder(
                     padding: const EdgeInsets.all(20),
@@ -167,7 +163,6 @@ class _LinkedIDPPageState extends State<LinkedIDPPage> with TickerProviderStateM
             ),
           ),
 
-          // Floating Add Button
           Positioned(
             bottom: 20,
             right: 20,
@@ -361,7 +356,6 @@ class _LinkedIDPPageState extends State<LinkedIDPPage> with TickerProviderStateM
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  // Profile Picture/Initial
                   Container(
                     width: 50,
                     height: 50,
@@ -392,7 +386,6 @@ class _LinkedIDPPageState extends State<LinkedIDPPage> with TickerProviderStateM
 
                   const SizedBox(width: 16),
 
-                  // User Info
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -429,7 +422,6 @@ class _LinkedIDPPageState extends State<LinkedIDPPage> with TickerProviderStateM
                     ),
                   ),
 
-                  // IDP Logo
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(

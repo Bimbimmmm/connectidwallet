@@ -13,14 +13,13 @@ class AccountPage extends StatelessWidget {
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // BLPID Logo Background
           Positioned(
             top: -50,
             right: -100,
             child: Opacity(
               opacity: 0.1,
               child: Image.asset(
-                'assets/images/blpid_logo.png',
+                'assets/images/BLPID.png',
                 width: 300,
                 height: 300,
                 fit: BoxFit.contain,
@@ -41,21 +40,17 @@ class AccountPage extends StatelessWidget {
           SafeArea(
             child: Column(
               children: [
-                // Custom App Bar
                 _buildAppBar(context),
 
-                // Profile Content
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
                     padding: const EdgeInsets.all(20),
                     child: Column(
                       children: [
-                        // Profile Card
                         _buildProfileCard(),
                         const SizedBox(height: 24),
 
-                        // Settings Options
                         _buildSettingsSection(context),
                         const SizedBox(height: 100),
                       ],
@@ -109,7 +104,6 @@ class AccountPage extends StatelessWidget {
               GestureDetector(
                 onTap: () {
                   HapticFeedback.lightImpact();
-                  // Handle edit profile
                 },
                 child: Container(
                   padding: const EdgeInsets.all(8),
@@ -219,7 +213,6 @@ class AccountPage extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // Verified Badge
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,

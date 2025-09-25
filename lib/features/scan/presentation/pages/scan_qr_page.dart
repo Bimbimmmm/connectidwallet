@@ -36,7 +36,6 @@ class _ScanQRPageState extends State<ScanQRPage> with TickerProviderStateMixin {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Camera Preview (Placeholder)
           Container(
             color: Colors.black87,
             child: const Center(
@@ -50,9 +49,7 @@ class _ScanQRPageState extends State<ScanQRPage> with TickerProviderStateMixin {
             ),
           ),
 
-          // Scanning Overlay
           if (_isScanning) ...[
-            // Dark overlay with hole in center
             ColorFiltered(
               colorFilter: ColorFilter.mode(
                 Colors.black.withOpacity(0.5),
@@ -80,7 +77,6 @@ class _ScanQRPageState extends State<ScanQRPage> with TickerProviderStateMixin {
               ),
             ),
 
-            // Scanning Frame
             Center(
               child: Container(
                 width: 250,
@@ -164,7 +160,6 @@ class _ScanQRPageState extends State<ScanQRPage> with TickerProviderStateMixin {
                       ),
                     ),
 
-                    // Scanning line
                     AnimatedBuilder(
                       animation: _scanController,
                       builder: (context, child) {
@@ -202,11 +197,9 @@ class _ScanQRPageState extends State<ScanQRPage> with TickerProviderStateMixin {
             ),
           ],
 
-          // Top Controls
           SafeArea(
             child: Column(
               children: [
-                // App Bar
                 ClipRect(
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
@@ -271,7 +264,6 @@ class _ScanQRPageState extends State<ScanQRPage> with TickerProviderStateMixin {
 
                 const Spacer(),
 
-                // Instructions
                 Container(
                   margin: const EdgeInsets.all(20),
                   padding: const EdgeInsets.all(16),

@@ -1,7 +1,9 @@
-import 'dart:ui';
+// lib/features/auth/presentation/pages/login_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:ui';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../../core/services/connectidn_auth_service.dart';
 import '../../../home/presentation/pages/home_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -14,7 +16,9 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   late AnimationController _backgroundController;
   late AnimationController _floatingController;
+  final ConnectIDNAuthService _authService = ConnectIDNAuthService();
   bool _isLoading = false;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -30,11 +34,15 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       vsync: this,
     )..repeat(reverse: true);
 
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-      statusBarBrightness: Brightness.dark,
-    ));
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
+    );
+
+    _checkAuthStatus();
   }
 
   @override
@@ -44,17 +52,92 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  Future<void> _handleLogin() async {
-    if (_isLoading) return;
-    setState(() => _isLoading = true);
+  Future<void> _checkAuthStatus() async {
+    final isAuthenticated = await _authService.isAuthenticated();
+    if (isAuthenticated && mounted) {
 
-    // Simulasi proses login (tidak memanggil OAuth)
-    await Future.delayed(const Duration(milliseconds: 900));
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const HomePage(),
+        ),
+      );
+    }
+  }
 
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const HomePage()),
+  Future<void> _handleConnectIDNLogin() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      print('Starting CONNECTIDN login process...');
+
+      final result = await _authService.login();
+
+      if (result != null && mounted) {
+        print('Login successful, navigating to home...');
+
+        final user = await _authService.getCurrentUser();
+        if (user != null) {
+          print('Welcome ${user.name} (NIP: ${user.nip})');
+        }
+
+        Navigator.pushReplacement(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) => const HomePage(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              const begin = Offset(1.0, 0.0);
+              const end = Offset.zero;
+              const curve = Curves.easeInOutCubic;
+
+              var tween = Tween(begin: begin, end: end).chain(
+                CurveTween(curve: curve),
+              );
+
+              return SlideTransition(
+                position: animation.drive(tween),
+                child: child,
+              );
+            },
+          ),
+        );
+      } else {
+        _showError('Login dibatalkan atau gagal. Silakan coba lagi.');
+      }
+    } catch (e) {
+      print('Login error: $e');
+      _showError('Terjadi kesalahan saat login. Silakan coba lagi.');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _showError(String message) {
+    setState(() {
+      _errorMessage = message;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red.withOpacity(0.8),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        action: SnackBarAction(
+          label: 'OK',
+          textColor: Colors.white,
+          onPressed: () {},
+        ),
+      ),
     );
   }
 
@@ -66,17 +149,20 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       backgroundColor: const Color(0xFF284074),
       body: Stack(
         children: [
-          // Animated gradient background
           AnimatedBuilder(
             animation: _backgroundController,
             builder: (context, child) {
               return Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    begin: Alignment(-1 + 2 * _backgroundController.value,
-                        -1 + 2 * _backgroundController.value),
-                    end: Alignment(1 - 2 * _backgroundController.value,
-                        1 - 2 * _backgroundController.value),
+                    begin: Alignment(
+                      -1 + 2 * _backgroundController.value,
+                      -1 + 2 * _backgroundController.value,
+                    ),
+                    end: Alignment(
+                      1 - 2 * _backgroundController.value,
+                      1 - 2 * _backgroundController.value,
+                    ),
                     colors: const [
                       Color(0xFF284074),
                       Color(0xFF3A5298),
@@ -90,13 +176,12 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
             },
           ),
 
-          // Floating orbs
           ..._buildFloatingOrbs(size),
 
-          // Main content
           SafeArea(
             child: Stack(
               children: [
+
                 Positioned.fill(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -104,7 +189,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                       children: [
                         const Spacer(flex: 2),
 
-                        // Glass card
                         ClipRRect(
                           borderRadius: BorderRadius.circular(32),
                           child: BackdropFilter(
@@ -136,7 +220,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  // Logo (fallback jika asset tidak ada)
+
                                   Container(
                                     width: 100,
                                     height: 100,
@@ -165,7 +249,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                         'assets/images/BLPID.png',
                                         width: 60,
                                         height: 60,
-                                        errorBuilder: (context, error, stack) {
+                                        errorBuilder: (context, error, stackTrace) {
                                           return const Icon(
                                             Icons.fingerprint,
                                             size: 50,
@@ -177,10 +261,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                   )
                                       .animate()
                                       .scale(
-                                    delay:
-                                    const Duration(milliseconds: 300),
-                                    duration:
-                                    const Duration(milliseconds: 600),
+                                    delay: const Duration(milliseconds: 300),
+                                    duration: const Duration(milliseconds: 600),
                                     curve: Curves.elasticOut,
                                   )
                                       .shimmer(
@@ -191,12 +273,13 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 
                                   const SizedBox(height: 32),
 
-                                  // Welcome text
                                   ShaderMask(
-                                    shaderCallback: (bounds) =>
-                                        const LinearGradient(
-                                          colors: [Colors.white, Color(0xFFE0E0E0)],
-                                        ).createShader(bounds),
+                                    shaderCallback: (bounds) => const LinearGradient(
+                                      colors: [
+                                        Colors.white,
+                                        Color(0xFFE0E0E0),
+                                      ],
+                                    ).createShader(bounds),
                                     child: const Text(
                                       'Selamat Datang di',
                                       style: TextStyle(
@@ -209,21 +292,17 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                   )
                                       .animate()
                                       .fadeIn(
-                                    delay:
-                                    const Duration(milliseconds: 500),
-                                    duration:
-                                    const Duration(milliseconds: 800),
+                                    delay: const Duration(milliseconds: 500),
+                                    duration: const Duration(milliseconds: 800),
                                   )
                                       .slideY(
                                     begin: 0.3,
                                     end: 0,
-                                    delay:
-                                    const Duration(milliseconds: 500),
+                                    delay: const Duration(milliseconds: 500),
                                   ),
 
                                   const SizedBox(height: 8),
 
-                                  // App name
                                   ShaderMask(
                                     shaderCallback: (bounds) => LinearGradient(
                                       colors: [
@@ -247,28 +326,23 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                   )
                                       .animate()
                                       .fadeIn(
-                                    delay:
-                                    const Duration(milliseconds: 700),
-                                    duration:
-                                    const Duration(milliseconds: 800),
+                                    delay: const Duration(milliseconds: 700),
+                                    duration: const Duration(milliseconds: 800),
                                   )
                                       .slideY(
                                     begin: 0.3,
                                     end: 0,
-                                    delay:
-                                    const Duration(milliseconds: 700),
+                                    delay: const Duration(milliseconds: 700),
                                   ),
 
                                   const SizedBox(height: 48),
 
-                                  // Button "Login" (dummy) — gambar proporsional memenuhi tombol
                                   GestureDetector(
-                                    onTap: _isLoading ? null : _handleLogin,
+                                    onTap: _isLoading ? null : _handleConnectIDNLogin,
                                     child: AnimatedContainer(
                                       duration: const Duration(milliseconds: 300),
                                       height: 50,
-                                      width: 150,
-                                      //width: double.infinity,
+                                      width: 150, // Sesuaikan lebar sesuai kebutuhan
                                       decoration: BoxDecoration(
                                         gradient: LinearGradient(
                                           colors: _isLoading
@@ -299,7 +373,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                           child: Stack(
                                             fit: StackFit.expand,
                                             children: [
-
+                                              // Login image
                                               SizedBox.expand(
                                                 child: FittedBox(
                                                   fit: BoxFit.contain,
@@ -307,15 +381,35 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                                   child: Image.asset(
                                                     'assets/images/login.png',
                                                     filterQuality: FilterQuality.high,
-                                                    errorBuilder: (c, e, s) => const SizedBox(), // fallback silent
+                                                    errorBuilder: (context, error, stackTrace) {
+                                                      // Fallback jika gambar tidak ada
+                                                      return Row(
+                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                        children: [
+                                                          Icon(
+                                                            Icons.fingerprint,
+                                                            color: const Color(0xFF284074),
+                                                            size: 24,
+                                                          ),
+                                                          const SizedBox(width: 12),
+                                                          const Text(
+                                                            'Login with CONNECTIDN',
+                                                            style: TextStyle(
+                                                              color: Color(0xFF284074),
+                                                              fontSize: 16,
+                                                              fontWeight: FontWeight.w600,
+                                                              letterSpacing: 0.5,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
                                                   ),
                                                 ),
                                               ),
 
-
                                               if (_isLoading)
                                                 Container(color: Colors.white.withOpacity(0.15)),
-
 
                                               if (_isLoading)
                                                 const Center(
@@ -324,8 +418,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                                     height: 24,
                                                     child: CircularProgressIndicator(
                                                       strokeWidth: 2.5,
-                                                      valueColor:
-                                                      AlwaysStoppedAnimation<Color>(Color(0xFF284074)),
+                                                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF284074)),
                                                     ),
                                                   ),
                                                 ),
@@ -337,24 +430,22 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                   )
                                       .animate()
                                       .fadeIn(
-                                    delay:
-                                    const Duration(milliseconds: 900),
-                                    duration:
-                                    const Duration(milliseconds: 800),
+                                    delay: const Duration(milliseconds: 900),
+                                    duration: const Duration(milliseconds: 800),
                                   )
                                       .slideY(
                                     begin: 0.5,
                                     end: 0,
-                                    delay:
-                                    const Duration(milliseconds: 900),
+                                    delay: const Duration(milliseconds: 900),
                                   ),
 
                                   const SizedBox(height: 24),
 
-                                  // Security badge
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 16, vertical: 8),
+                                      horizontal: 16,
+                                      vertical: 8,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: Colors.white.withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(20),
@@ -366,17 +457,17 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(Icons.verified_user,
-                                            size: 16,
-                                            color:
-                                            Colors.white.withOpacity(0.9)),
+                                        Icon(
+                                          Icons.verified_user,
+                                          size: 16,
+                                          color: Colors.white.withOpacity(0.9),
+                                        ),
                                         const SizedBox(width: 8),
                                         Text(
                                           'Powered By BLPID - BSSN',
                                           style: TextStyle(
                                             fontSize: 12,
-                                            color:
-                                            Colors.white.withOpacity(0.9),
+                                            color: Colors.white.withOpacity(0.9),
                                             letterSpacing: 0.3,
                                           ),
                                         ),
@@ -385,11 +476,35 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                   )
                                       .animate()
                                       .fadeIn(
-                                    delay: const Duration(
-                                        milliseconds: 1100),
-                                    duration:
-                                    const Duration(milliseconds: 800),
+                                    delay: const Duration(milliseconds: 1100),
+                                    duration: const Duration(milliseconds: 800),
                                   ),
+
+                                  if (_errorMessage != null) ...[
+                                    const SizedBox(height: 16),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 8,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.red.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: Colors.red.withOpacity(0.3),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        _errorMessage!,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.red[300],
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
@@ -412,7 +527,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                   ),
                 ),
 
-                // Bottom logos (opsional)
                 Positioned(
                   bottom: 20,
                   left: 0,
@@ -420,7 +534,29 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _chipLogo('assets/images/BLPID.png', Icons.security),
+                      // BSSN Logo
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                            width: 1,
+                          ),
+                        ),
+                        child: Image.asset(
+                          'assets/images/bssn_logo.png',
+                          height: 32,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(
+                              Icons.security,
+                              size: 32,
+                              color: Colors.white.withOpacity(0.6),
+                            );
+                          },
+                        ),
+                      ),
                       const SizedBox(width: 16),
                       Container(
                         height: 32,
@@ -428,8 +564,29 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                         color: Colors.white.withOpacity(0.3),
                       ),
                       const SizedBox(width: 16),
-                      _chipLogo('assets/images/bssn_logo.png',
-                          Icons.verified_user),
+                      // BLPID Logo
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                            width: 1,
+                          ),
+                        ),
+                        child: Image.asset(
+                          'assets/images/BLPID.png',
+                          height: 32,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(
+                              Icons.verified_user,
+                              size: 32,
+                              color: Colors.white.withOpacity(0.6),
+                            );
+                          },
+                        ),
+                      ),
                     ],
                   )
                       .animate()
@@ -447,31 +604,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _chipLogo(String asset, IconData fallback) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.2),
-          width: 1,
-        ),
-      ),
-      child: Image.asset(
-        asset,
-        height: 32,
-        errorBuilder: (context, error, stackTrace) {
-          return Icon(
-            fallback,
-            size: 32,
-            color: Colors.white.withOpacity(0.6),
-          );
-        },
       ),
     );
   }
@@ -501,6 +633,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
           );
         },
       ),
+
       AnimatedBuilder(
         animation: _floatingController,
         builder: (context, child) {
@@ -524,6 +657,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
           );
         },
       ),
+
       AnimatedBuilder(
         animation: _floatingController,
         builder: (context, child) {
@@ -533,33 +667,38 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
             child: Container(
               width: 120,
               height: 120,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
-                  colors: [Colors.white54, Colors.transparent],
+                  colors: [
+                    Colors.white.withOpacity(0.1),
+                    Colors.transparent,
+                  ],
                 ),
               ),
             ),
           );
         },
       ),
+
       ...List.generate(5, (index) {
         return AnimatedBuilder(
           animation: _floatingController,
           builder: (context, child) {
             return Positioned(
               top: size.height * (0.2 + index * 0.15) +
-                  (15 *
-                      _floatingController.value *
-                      (index.isEven ? 1 : -1)),
+                  (15 * _floatingController.value * (index.isEven ? 1 : -1)),
               left: size.width * (0.1 + index * 0.2),
               child: Container(
                 width: 30 + (index * 10),
                 height: 30 + (index * 10),
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
-                    colors: [Colors.white38, Colors.transparent],
+                    colors: [
+                      Colors.white.withOpacity(0.08),
+                      Colors.transparent,
+                    ],
                   ),
                 ),
               ),

@@ -1,7 +1,6 @@
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -26,20 +25,17 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
 
-        manifestPlaceholders += mapOf(
-            "appAuthRedirectScheme" to "dummy"
-        )
+        manifestPlaceholders["appAuthRedirectScheme"] = "com.example.connectidwallet"
+
+        // manifestPlaceholders.putAll(mapOf(
+        //     "appAuthRedirectScheme" to "com.example.connectidwallet"
+        // ))
     }
 
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("debug")
         }
-
-        // (opsional) kalau mau spesifik hanya untuk debug:
-        // debug {
-        //     manifestPlaceholders["appAuthRedirectScheme"] = "dummy"
-        // }
     }
 }
 
