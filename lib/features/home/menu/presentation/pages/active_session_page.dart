@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:ui';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../../../core/services/keycloak_session_service.dart';
 
 class ActiveSessionPage extends StatefulWidget {
   const ActiveSessionPage({super.key});
@@ -12,73 +13,44 @@ class ActiveSessionPage extends StatefulWidget {
 }
 
 class _ActiveSessionPageState extends State<ActiveSessionPage> {
-  final List<Map<String, dynamic>> _activeSessions = [
-    {
-      'appName': 'Tokopedia',
-      'appUrl': 'tokopedia.com',
-      'appLogo': Icons.shopping_bag,
-      'location': 'Jakarta, Indonesia',
-      'lastActive': '2 minutes ago',
-      'status': 'active',
-      'device': 'Chrome on Windows',
-      'ip': '192.168.1.100',
-      'color': Colors.green,
-    },
-    {
-      'appName': 'Gojek',
-      'appUrl': 'gojek.com',
-      'appLogo': Icons.motorcycle,
-      'location': 'Bandung, Indonesia',
-      'lastActive': '1 hour ago',
-      'status': 'idle',
-      'device': 'Mobile App - Android',
-      'ip': '192.168.1.101',
-      'color': Colors.green,
-    },
-    {
-      'appName': 'Bank BCA',
-      'appUrl': 'klikbca.com',
-      'appLogo': Icons.account_balance,
-      'location': 'Jakarta, Indonesia',
-      'lastActive': '3 hours ago',
-      'status': 'idle',
-      'device': 'Safari on iPhone',
-      'ip': '192.168.1.102',
-      'color': Colors.blue,
-    },
-    {
-      'appName': 'Traveloka',
-      'appUrl': 'traveloka.com',
-      'appLogo': Icons.flight,
-      'location': 'Surabaya, Indonesia',
-      'lastActive': '1 day ago',
-      'status': 'inactive',
-      'device': 'Firefox on Mac',
-      'ip': '192.168.1.103',
-      'color': Colors.orange,
-    },
-    {
-      'appName': 'Shopee',
-      'appUrl': 'shopee.co.id',
-      'appLogo': Icons.shopping_cart,
-      'location': 'Jakarta, Indonesia',
-      'lastActive': '2 days ago',
-      'status': 'inactive',
-      'device': 'Mobile App - iOS',
-      'ip': '192.168.1.104',
-      'color': Colors.deepOrange,
-    },
-  ];
+  final KeycloakSessionService _sessionService = KeycloakSessionService();
+  List<UserSession> _activeSessions = [];
+  bool _isLoading = true;
 
-  void _revokeSession(int index) {
+  @override
+  void initState() {
+    super.initState();
+    _loadSessions();
+  }
+
+  Future<void> _loadSessions() async {
+    setState(() => _isLoading = true);
+    try {
+      final sessions = await _sessionService.getUserSessions();
+      if (!mounted) return;
+      setState(() {
+        _activeSessions = sessions;
+        _isLoading = false;
+      });
+    } catch (e, st) {
+      debugPrint('Error loading sessions: $e\n$st');
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gagal memuat sesi')),
+      );
+    }
+  }
+
+  void _revokeSession(UserSession session) {
     HapticFeedback.mediumImpact();
     showDialog(
       context: context,
-      builder: (context) => _buildRevokeDialog(index),
+      builder: (context) => _buildRevokeDialog(session),
     );
   }
 
-  void _showSessionDetail(Map<String, dynamic> session) {
+  void _showSessionDetail(UserSession session) {
     HapticFeedback.lightImpact();
     showModalBottomSheet(
       context: context,
@@ -88,17 +60,24 @@ class _ActiveSessionPageState extends State<ActiveSessionPage> {
     );
   }
 
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'active':
-        return Colors.greenAccent;
-      case 'idle':
-        return Colors.orangeAccent;
-      case 'inactive':
-        return Colors.grey;
-      default:
-        return Colors.white;
-    }
+  Color _getStatusColor(bool isActive) {
+    return isActive ? Colors.greenAccent : Colors.orangeAccent;
+  }
+
+  String _formatDuration(DateTime time) {
+    final now = DateTime.now();
+    final diff = now.difference(time);
+
+    if (diff.inMinutes < 1) return 'Just now';
+    if (diff.inHours < 1) return '${diff.inMinutes} minutes ago';
+    if (diff.inDays < 1) return '${diff.inHours} hours ago';
+    if (diff.inDays < 7) return '${diff.inDays} days ago';
+
+    return '${time.year.toString().padLeft(4, '0')}-'
+        '${time.month.toString().padLeft(2, '0')}-'
+        '${time.day.toString().padLeft(2, '0')} '
+        '${time.hour.toString().padLeft(2, '0')}:'
+        '${time.minute.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -149,21 +128,37 @@ class _ActiveSessionPageState extends State<ActiveSessionPage> {
           SafeArea(
             child: Column(
               children: [
-                // Custom App Bar
                 _buildAppBar(),
 
-                // Stats Card
                 _buildStatsCard(),
 
-                // Sessions List
                 Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                  child: _isLoading
+                      ? const Center(
+                    child: CircularProgressIndicator(
+                      valueColor:
+                      AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                      : _activeSessions.isEmpty
+                      ? Center(
+                    child: Text(
+                      'Tidak ada sesi aktif',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.8),
+                        fontSize: 14,
+                      ),
+                    ),
+                  )
+                      : ListView.builder(
+                    padding:
+                    const EdgeInsets.fromLTRB(20, 0, 20, 20),
                     physics: const BouncingScrollPhysics(),
                     itemCount: _activeSessions.length,
-                    itemBuilder: (context, index) {
-                      return _buildSessionCard(_activeSessions[index], index);
-                    },
+                    itemBuilder: (context, index) => _buildSessionCard(
+                      _activeSessions[index],
+                      index,
+                    ),
                   ),
                 ),
               ],
@@ -234,9 +229,9 @@ class _ActiveSessionPageState extends State<ActiveSessionPage> {
                 ),
               ),
               GestureDetector(
-                onTap: () {
+                onTap: () async {
                   HapticFeedback.lightImpact();
-                  // Revoke all sessions
+
                 },
                 child: Container(
                   padding: const EdgeInsets.all(8),
@@ -263,8 +258,9 @@ class _ActiveSessionPageState extends State<ActiveSessionPage> {
   }
 
   Widget _buildStatsCard() {
-    final activeCount = _activeSessions.where((s) => s['status'] == 'active').length;
+    final activeCount = _activeSessions.where((s) => s.isActive).length;
     final totalCount = _activeSessions.length;
+    final uniqueApps = _activeSessions.map((s) => s.clientId).toSet().length;
 
     return Container(
       margin: const EdgeInsets.all(20),
@@ -291,27 +287,19 @@ class _ActiveSessionPageState extends State<ActiveSessionPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildStatItem('Total Sessions', totalCount.toString(), Colors.blueAccent),
-              Container(
-                width: 1,
-                height: 40,
-                color: Colors.white.withOpacity(0.2),
-              ),
-              _buildStatItem('Active Now', activeCount.toString(), Colors.greenAccent),
-              Container(
-                width: 1,
-                height: 40,
-                color: Colors.white.withOpacity(0.2),
-              ),
-              _buildStatItem('Locations', '3', Colors.orangeAccent),
+              _buildStatItem(
+                  'Total Sessions', totalCount.toString(), Colors.blueAccent),
+              Container(width: 1, height: 40, color: Colors.white.withOpacity(0.2)),
+              _buildStatItem(
+                  'Active Now', activeCount.toString(), Colors.greenAccent),
+              Container(width: 1, height: 40, color: Colors.white.withOpacity(0.2)),
+              _buildStatItem(
+                  'Apps', uniqueApps.toString(), Colors.orangeAccent),
             ],
           ),
         ),
       ),
-    )
-        .animate()
-        .fadeIn()
-        .slideY(begin: -0.2, end: 0);
+    ).animate().fadeIn().slideY(begin: -0.2, end: 0);
   }
 
   Widget _buildStatItem(String label, String value, Color color) {
@@ -337,8 +325,9 @@ class _ActiveSessionPageState extends State<ActiveSessionPage> {
     );
   }
 
-  Widget _buildSessionCard(Map<String, dynamic> session, int index) {
-    final statusColor = _getStatusColor(session['status']);
+  Widget _buildSessionCard(UserSession session, int index) {
+    final statusColor = _getStatusColor(session.isActive);
+    final isCurrentDevice = index == 0; // asumsi: item pertama = device saat ini
 
     return GestureDetector(
       onTap: () => _showSessionDetail(session),
@@ -355,7 +344,9 @@ class _ActiveSessionPageState extends State<ActiveSessionPage> {
           ),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: Colors.white.withOpacity(0.2),
+            color: isCurrentDevice
+                ? Colors.greenAccent.withOpacity(0.3)
+                : Colors.white.withOpacity(0.2),
             width: 1,
           ),
         ),
@@ -367,20 +358,21 @@ class _ActiveSessionPageState extends State<ActiveSessionPage> {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
+                  // App Icon (placeholder)
                   Container(
                     width: 50,
                     height: 50,
                     decoration: BoxDecoration(
-                      color: (session['color'] as Color).withOpacity(0.15),
+                      color: statusColor.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: (session['color'] as Color).withOpacity(0.3),
+                        color: statusColor.withOpacity(0.3),
                         width: 1,
                       ),
                     ),
                     child: Icon(
-                      session['appLogo'],
-                      color: session['color'],
+                      Icons.devices_rounded,
+                      color: statusColor,
                       size: 24,
                     ),
                   ),
@@ -393,12 +385,15 @@ class _ActiveSessionPageState extends State<ActiveSessionPage> {
                       children: [
                         Row(
                           children: [
-                            Text(
-                              session['appName'],
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                            Expanded(
+                              child: Text(
+                                session.clientName,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -410,11 +405,32 @@ class _ActiveSessionPageState extends State<ActiveSessionPage> {
                                 shape: BoxShape.circle,
                               ),
                             ),
+                            if (isCurrentDevice) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.greenAccent.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Text(
+                                  'This Device',
+                                  style: TextStyle(
+                                    color: Colors.greenAccent,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          session['appUrl'],
+                          'Client: ${session.clientId}',
                           style: TextStyle(
                             color: Colors.blueAccent.withOpacity(0.8),
                             fontSize: 12,
@@ -430,7 +446,7 @@ class _ActiveSessionPageState extends State<ActiveSessionPage> {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              session['location'],
+                              session.ipAddress,
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.6),
                                 fontSize: 11,
@@ -448,7 +464,7 @@ class _ActiveSessionPageState extends State<ActiveSessionPage> {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              'Last active: ${session['lastActive']}',
+                              'Last active: ${_formatDuration(session.lastAccessTime)}',
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.6),
                                 fontSize: 11,
@@ -460,27 +476,25 @@ class _ActiveSessionPageState extends State<ActiveSessionPage> {
                     ),
                   ),
 
-                  IconButton(
-                    onPressed: () => _revokeSession(index),
-                    icon: Icon(
-                      Icons.close,
-                      color: Colors.redAccent.withOpacity(0.8),
-                      size: 20,
+                  if (!isCurrentDevice)
+                    IconButton(
+                      onPressed: () => _revokeSession(session),
+                      icon: Icon(
+                        Icons.close,
+                        color: Colors.redAccent.withOpacity(0.8),
+                        size: 20,
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),
           ),
         ),
       ),
-    )
-        .animate()
-        .fadeIn(delay: Duration(milliseconds: 100 * index))
-        .slideX(begin: 0.2, end: 0);
+    ).animate().fadeIn(delay: Duration(milliseconds: 100 * index)).slideX(begin: 0.2, end: 0);
   }
 
-  Widget _buildRevokeDialog(int index) {
+  Widget _buildRevokeDialog(UserSession session) {
     return Dialog(
       backgroundColor: Colors.transparent,
       child: Container(
@@ -500,11 +514,7 @@ class _ActiveSessionPageState extends State<ActiveSessionPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.warning_rounded,
-                  color: Colors.orangeAccent,
-                  size: 48,
-                ),
+                const Icon(Icons.warning_rounded, color: Colors.orangeAccent, size: 48),
                 const SizedBox(height: 16),
                 const Text(
                   'Revoke Session?',
@@ -516,7 +526,7 @@ class _ActiveSessionPageState extends State<ActiveSessionPage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'This will log you out from ${_activeSessions[index]['appName']}',
+                  'This will log you out from ${session.clientName}',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.7),
@@ -531,15 +541,18 @@ class _ActiveSessionPageState extends State<ActiveSessionPage> {
                       onPressed: () => Navigator.pop(context),
                       child: Text(
                         'Cancel',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.7),
-                        ),
+                        style: TextStyle(color: Colors.white.withOpacity(0.7)),
                       ),
                     ),
                     ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
+                        // TODO: panggil revoke by session jika service ada
+                        // await _sessionService.revoke(session);
+                        if (!mounted) return;
                         setState(() {
-                          _activeSessions.removeAt(index);
+                          _activeSessions.removeWhere(
+                                (s) => s.clientId == session.clientId && s.ipAddress == session.ipAddress,
+                          );
                         });
                         Navigator.pop(context);
                       },
@@ -561,7 +574,7 @@ class _ActiveSessionPageState extends State<ActiveSessionPage> {
     );
   }
 
-  Widget _buildSessionDetailSheet(Map<String, dynamic> session) {
+  Widget _buildSessionDetailSheet(UserSession session) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.6,
       decoration: BoxDecoration(
@@ -590,13 +603,13 @@ class _ActiveSessionPageState extends State<ActiveSessionPage> {
                 ),
                 const SizedBox(height: 20),
                 Icon(
-                  session['appLogo'],
-                  color: session['color'],
+                  session.isActive ? Icons.verified_rounded : Icons.hourglass_bottom_rounded,
+                  color: _getStatusColor(session.isActive),
                   size: 48,
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  session['appName'],
+                  session.clientName,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 24,
@@ -607,33 +620,33 @@ class _ActiveSessionPageState extends State<ActiveSessionPage> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
-                    color: _getStatusColor(session['status']).withOpacity(0.2),
+                    color: _getStatusColor(session.isActive).withOpacity(0.2),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: _getStatusColor(session['status']).withOpacity(0.5),
+                      color: _getStatusColor(session.isActive).withOpacity(0.5),
                       width: 1,
                     ),
                   ),
                   child: Text(
-                    session['status'].toString().toUpperCase(),
+                    session.isActive ? 'ACTIVE' : 'INACTIVE',
                     style: TextStyle(
-                      color: _getStatusColor(session['status']),
+                      color: _getStatusColor(session.isActive),
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
                 const SizedBox(height: 24),
-                _buildDetailRow('Website', session['appUrl']),
-                _buildDetailRow('Location', session['location']),
-                _buildDetailRow('Device', session['device']),
-                _buildDetailRow('IP Address', session['ip']),
-                _buildDetailRow('Last Active', session['lastActive']),
+                _buildDetailRow('Client ID', session.clientId),
+                _buildDetailRow('IP Address', session.ipAddress),
+                _buildDetailRow('Last Active', _formatDuration(session.lastAccessTime)),
+
                 const Spacer(),
                 GestureDetector(
                   onTap: () {
                     HapticFeedback.mediumImpact();
                     Navigator.pop(context);
+                    _revokeSession(session);
                   },
                   child: Container(
                     width: double.infinity,
@@ -679,12 +692,16 @@ class _ActiveSessionPageState extends State<ActiveSessionPage> {
               fontSize: 14,
             ),
           ),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],

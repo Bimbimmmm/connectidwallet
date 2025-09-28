@@ -188,7 +188,7 @@ class AccountPage extends StatelessWidget {
 
               // Name
               const Text(
-                'Muhammad Wibisono',
+                'Bima Satria Yudha Mohammad',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 20,

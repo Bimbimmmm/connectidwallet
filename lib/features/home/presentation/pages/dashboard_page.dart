@@ -8,6 +8,7 @@ import '../../menu/presentation/pages/linked_idp_page.dart';
 import '../../menu/presentation/pages/active_session_page.dart';
 import '../../menu/presentation/pages/history_page.dart';
 import '../../menu/presentation/pages/id_vault_page.dart';
+import '../../../../core/services/connectidn_auth_service.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -19,8 +20,13 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage>
     with TickerProviderStateMixin {
   late final AnimationController _cardController;
-  final ScrollController _scrollController = ScrollController();      // untuk SingleChildScrollView
-  final ScrollController _cardsController = ScrollController();       // untuk ListView horizontal
+  final ScrollController _scrollController = ScrollController();
+  final ScrollController _cardsController = ScrollController();
+  final ConnectIDNAuthService _authService = ConnectIDNAuthService();
+
+  String _userName = 'User'; // Default name
+  String? _firstName;
+  String? _lastName;
 
   @override
   void initState() {
@@ -29,6 +35,38 @@ class _DashboardPageState extends State<DashboardPage>
       duration: const Duration(seconds: 3),
       vsync: this,
     )..repeat(reverse: true);
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      final user = await _authService.getCurrentUser();
+      if (user != null) {
+        setState(() {
+          if (user.name != null && user.name!.isNotEmpty) {
+            _userName = user.name!;
+          } else {
+            _userName = user.preferredUsername ?? user.email ?? 'User';
+          }
+        });
+      }
+
+      final userInfo = await _authService.getUserInfo();
+      if (userInfo != null) {
+        setState(() {
+          _firstName = userInfo['given_name'] ?? userInfo['firstName'];
+          _lastName = userInfo['family_name'] ?? userInfo['lastName'];
+
+          if (_firstName != null || _lastName != null) {
+            _userName = '${_firstName ?? ''} ${_lastName ?? ''}'.trim();
+          } else if (userInfo['name'] != null) {
+            _userName = userInfo['name'];
+          }
+        });
+      }
+    } catch (e) {
+      print('Error loading user data: $e');
+    }
   }
 
   @override
@@ -232,11 +270,16 @@ class _DashboardPageState extends State<DashboardPage>
         const SizedBox(height: 4),
 
         ShaderMask(
-          shaderCallback: (bounds) =>
-              const LinearGradient(colors: [Colors.white, Color(0xFFB8D4F0)]).createShader(bounds),
-          child: const Text(
-            'Muhammad Wibisono',
-            style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
+          shaderCallback: (bounds) => const LinearGradient(
+            colors: [Colors.white, Color(0xFFB8D4F0)],
+          ).createShader(bounds),
+          child: Text(
+            _userName, // Gunakan nama dinamis
+            style: const TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
         )
             .animate()
@@ -282,7 +325,7 @@ class _DashboardPageState extends State<DashboardPage>
   Widget _buildCredentialCard(int index) {
     final cardTypes = ['KTP Digital', 'SIM Digital', 'Passport Digital'];
     final issuers = ['Dukcapil', 'Korlantas', 'Imigrasi'];
-    final holders = ['Muhammad Wibisono', 'Muhammad Wibisono', 'Muhammad Wibisono'];
+    final holders = ['Bima Satria Yudha Mohammad', 'Bima Satria Yudha Mohammad', 'Bima Satria Yudha Mohammad'];
     final dates = ['Verified: 20 Jan 2024', 'Verified: 15 Feb 2024', 'Verified: 10 Mar 2024'];
 
     return GestureDetector(

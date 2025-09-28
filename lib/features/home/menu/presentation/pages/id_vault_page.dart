@@ -18,7 +18,7 @@ class _IDVaultPageState extends State<IDVaultPage> with TickerProviderStateMixin
     {
       'type': 'KTP Digital',
       'issuer': 'Dukcapil',
-      'holder': 'Muhammad Wibisono',
+      'holder': 'Bima Satria Yudha Mohammad',
       'number': '3174012345678901',
       'verified': '20 Jan 2024',
       'expiry': '20 Jan 2029',
@@ -28,7 +28,7 @@ class _IDVaultPageState extends State<IDVaultPage> with TickerProviderStateMixin
     {
       'type': 'SIM Digital',
       'issuer': 'Korlantas',
-      'holder': 'Muhammad Wibisono',
+      'holder': 'Bima Satria Yudha Mohammad',
       'number': 'B 1234 ABC',
       'verified': '15 Feb 2024',
       'expiry': '15 Feb 2029',
@@ -38,7 +38,7 @@ class _IDVaultPageState extends State<IDVaultPage> with TickerProviderStateMixin
     {
       'type': 'Passport Digital',
       'issuer': 'Imigrasi',
-      'holder': 'Muhammad Wibisono',
+      'holder': 'Bima Satria Yudha Mohammad',
       'number': 'A1234567',
       'verified': '10 Mar 2024',
       'expiry': '10 Mar 2034',
@@ -48,7 +48,7 @@ class _IDVaultPageState extends State<IDVaultPage> with TickerProviderStateMixin
     {
       'type': 'NPWP Digital',
       'issuer': 'DJP',
-      'holder': 'Muhammad Wibisono',
+      'holder': 'Bima Satria Yudha Mohammad',
       'number': '12.345.678.9-012.345',
       'verified': '5 Apr 2024',
       'expiry': 'Lifetime',
@@ -58,7 +58,7 @@ class _IDVaultPageState extends State<IDVaultPage> with TickerProviderStateMixin
     {
       'type': 'BPJS Kesehatan',
       'issuer': 'BPJS',
-      'holder': 'Muhammad Wibisono',
+      'holder': 'Bima Satria Yudha Mohammad',
       'number': '0001234567890',
       'verified': '1 May 2024',
       'expiry': 'Active',

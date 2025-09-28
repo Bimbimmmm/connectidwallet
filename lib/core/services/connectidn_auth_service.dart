@@ -57,7 +57,7 @@ class ConnectIDNAuthService {
           scopes: ['openid', 'profile', 'email'],
           promptValues: ['login'],
           allowInsecureConnections: true,
-          preferEphemeralSession: false,  // Tambahkan ini
+          preferEphemeralSession: false,
           additionalParameters: {},
         ),
       );
@@ -367,6 +367,8 @@ class ConnectIDNUser {
   final String? name;
   final String? email;
   final String? preferredUsername;
+  final String? givenName;
+  final String? familyName;
   final int? exp;
   final int? iat;
 
@@ -376,6 +378,8 @@ class ConnectIDNUser {
     this.name,
     this.email,
     this.preferredUsername,
+    this.givenName,
+    this.familyName,
     this.exp,
     this.iat,
   });
@@ -387,9 +391,19 @@ class ConnectIDNUser {
       name: json['name']?.toString(),
       email: json['email']?.toString(),
       preferredUsername: json['preferred_username']?.toString(),
+      givenName: json['given_name']?.toString() ?? json['firstName']?.toString(),
+      familyName: json['family_name']?.toString() ?? json['lastName']?.toString(),
       exp: json['exp'] as int?,
       iat: json['iat'] as int?,
     );
+  }
+
+  String get fullName {
+    if (name != null && name!.isNotEmpty) return name!;
+    if (givenName != null || familyName != null) {
+      return '${givenName ?? ''} ${familyName ?? ''}'.trim();
+    }
+    return preferredUsername ?? email ?? 'User';
   }
 
   Map<String, dynamic> toJson() {
@@ -399,6 +413,8 @@ class ConnectIDNUser {
       'name': name,
       'email': email,
       'preferred_username': preferredUsername,
+      'given_name': givenName,
+      'family_name': familyName,
       'exp': exp,
       'iat': iat,
     };
