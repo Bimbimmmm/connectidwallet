@@ -85,7 +85,6 @@ class _HistoryPageState extends State<HistoryPage>
   Future<void> _loadLoginHistory() async {
     setState(() => _isLoading = true);
     try {
-      // Coba mendapatkan events dari Keycloak
       final events = await _sessionService.getMyEvents(max: 50);
       if (!mounted) return;
 
@@ -94,28 +93,39 @@ class _HistoryPageState extends State<HistoryPage>
         _isLoading = false;
       });
 
-      // Show info jika menggunakan mock/fallback data
-      if (events.isNotEmpty && events.first.id.startsWith('evt-sess-')) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Menampilkan history dari session data'),
-            backgroundColor: Colors.orange.withOpacity(0.8),
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
-
     } catch (e) {
       debugPrint('Error loading login history: $e');
       if (!mounted) return;
       setState(() => _isLoading = false);
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Gagal memuat riwayat login: ${e.toString()}'),
+          content: Text('Gagal memuat riwayat login: ${_getErrorMessage(e)}'),
           backgroundColor: Colors.red.withOpacity(0.8),
+          duration: const Duration(seconds: 4),
+          action: SnackBarAction(
+            label: 'Coba Lagi',
+            textColor: Colors.white,
+            onPressed: _loadLoginHistory,
+          ),
         ),
       );
     }
+  }
+
+  String _getErrorMessage(dynamic error) {
+    if (error.toString().contains('SocketException') ||
+        error.toString().contains('Connection')) {
+      return 'Tidak dapat terhubung ke server';
+    } else if (error.toString().contains('401') ||
+        error.toString().contains('Unauthorized')) {
+      return 'Sesi Anda telah berakhir';
+    } else if (error.toString().contains('404')) {
+      return 'Endpoint tidak ditemukan';
+    } else if (error.toString().contains('500')) {
+      return 'Terjadi kesalahan di server';
+    }
+    return 'Terjadi kesalahan tidak terduga';
   }
 
   @override
@@ -423,42 +433,48 @@ class _HistoryPageState extends State<HistoryPage>
           children: [
             Icon(
               Icons.history_rounded,
-              size: 64,
-              color: Colors.white.withOpacity(0.5),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Belum ada riwayat login',
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.8),
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Riwayat login aplikasi akan muncul di sini',
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.6),
-                fontSize: 14,
-              ),
+              size: 80,
+              color: Colors.white.withOpacity(0.3),
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
+            Text(
+              'Tidak Ada Riwayat Login',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.9),
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: Text(
+                'Belum ada riwayat login yang tercatat.\nRiwayat akan muncul setelah Anda login ke aplikasi.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.6),
+                  fontSize: 14,
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
               onPressed: _loadLoginHistory,
+              icon: const Icon(Icons.refresh, color: Colors.white),
+              label: const Text(
+                'Muat Ulang',
+                style: TextStyle(color: Colors.white),
+              ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white.withOpacity(0.1),
+                backgroundColor: Colors.white.withOpacity(0.2),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                   side: BorderSide(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withOpacity(0.3),
                     width: 1,
                   ),
                 ),
-              ),
-              child: const Text(
-                'Refresh',
-                style: TextStyle(color: Colors.white),
               ),
             ),
           ],

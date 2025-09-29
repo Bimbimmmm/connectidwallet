@@ -28,7 +28,6 @@ class _ActiveSessionPageState extends State<ActiveSessionPage> {
   Future<void> _loadSessions() async {
     setState(() => _isLoading = true);
     try {
-      // Load both user sessions and device sessions
       final sessions = await _sessionService.getUserSessions();
       final devices = await _sessionService.getDeviceSessions();
 
@@ -42,10 +41,39 @@ class _ActiveSessionPageState extends State<ActiveSessionPage> {
       debugPrint('Error loading sessions: $e\n$st');
       if (!mounted) return;
       setState(() => _isLoading = false);
+
+      // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gagal memuat sesi aktif')),
+        SnackBar(
+          content: Text('Gagal memuat data sesi: ${_getErrorMessage(e)}'),
+          backgroundColor: Colors.red.withOpacity(0.8),
+          duration: const Duration(seconds: 4),
+          action: SnackBarAction(
+            label: 'Coba Lagi',
+            textColor: Colors.white,
+            onPressed: _loadSessions,
+          ),
+        ),
       );
     }
+  }
+
+  String _getErrorMessage(dynamic error) {
+    if (error.toString().contains('SocketException') ||
+        error.toString().contains('Connection')) {
+      return 'Tidak dapat terhubung ke server';
+    } else if (error.toString().contains('401') ||
+        error.toString().contains('Unauthorized')) {
+      return 'Sesi Anda telah berakhir, silakan login kembali';
+    } else if (error.toString().contains('403') ||
+        error.toString().contains('Forbidden')) {
+      return 'Akses ditolak';
+    } else if (error.toString().contains('404')) {
+      return 'Endpoint tidak ditemukan';
+    } else if (error.toString().contains('500')) {
+      return 'Terjadi kesalahan di server';
+    }
+    return 'Terjadi kesalahan tidak terduga';
   }
 
   Future<void> _revokeSession(UserSession session) async {
@@ -1242,6 +1270,62 @@ class _ActiveSessionPageState extends State<ActiveSessionPage> {
                 color: Colors.white,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.devices_other_rounded,
+            size: 80,
+            color: Colors.white.withOpacity(0.3),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Tidak Ada Sesi Aktif',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.9),
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Text(
+              'Belum ada sesi login yang terdeteksi.\nCobalah login ke aplikasi lain menggunakan akun ini.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.6),
+                fontSize: 14,
+              ),
+            ),
+          ),
+          const SizedBox(height: 32),
+          ElevatedButton.icon(
+            onPressed: _loadSessions,
+            icon: const Icon(Icons.refresh, color: Colors.white),
+            label: const Text(
+              'Muat Ulang',
+              style: TextStyle(color: Colors.white),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white.withOpacity(0.2),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: Colors.white.withOpacity(0.3),
+                  width: 1,
+                ),
               ),
             ),
           ),
