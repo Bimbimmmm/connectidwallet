@@ -368,7 +368,7 @@ class _HistoryPageState extends State<HistoryPage>
                         ),
                       ),
                       child: Text(
-                        isSuccess ? 'Success' : 'Failed',
+                        isSuccess ? 'Success' : 'Logout',
                         style: TextStyle(
                           color: isSuccess ? Colors.greenAccent : Colors.redAccent,
                           fontSize: 10,
@@ -579,7 +579,7 @@ class _HistoryPageState extends State<HistoryPage>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Login to ${event.clientName}',
+                            '${event.clientName}',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
@@ -591,7 +591,7 @@ class _HistoryPageState extends State<HistoryPage>
                             'Event: ${event.type}',
                             style: TextStyle(
                               color: Colors.blueAccent.withOpacity(0.8),
-                              fontSize: 12,
+                              fontSize: 15,
                             ),
                           ),
                         ],

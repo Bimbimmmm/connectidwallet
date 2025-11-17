@@ -254,7 +254,7 @@ class _ActivityPageState extends State<ActivityPage> {
                           ),
                         ),
                         child: Text(
-                          isSuccess ? 'Success' : 'Failed',
+                          isSuccess ? 'Success' : 'Logout',
                           style: TextStyle(
                             color: isSuccess
                                 ? Colors.greenAccent

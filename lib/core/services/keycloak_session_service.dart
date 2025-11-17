@@ -332,5 +332,5 @@ class LoginEvent {
     return '${diff.inDays} days ago';
   }
 
-  String get statusText => isSuccess ? 'Success' : 'Failed';
+  String get statusText => isSuccess ? 'Success' : 'Logout';
 }
